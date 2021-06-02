@@ -88,28 +88,29 @@ existeUser([_| Y_ListUser], Nombre):-
     existeUser(Y_ListUser, Nombre).
 
 % Permita cambiar la actividad de un usuario
-setActividad([],_, _, aux, LUOut):- LUOut = aux, true, !.
-setActividad([X_LU | Y_LU], Nombre, contrasena, _):-
+setActividad([],_, _, Aux, LUOut):- LUOut = Aux, true, !.
+
+setActividad([X_LU | Y_LU], Nombre, Contrasena, Aux, LUOut):-
     git_Universal(X_LU,1,2,[0,1], NameOut),
     not(NameOut == Nombre),
-    append(aux, [X_LU], NewList),
-    setActividad(Y_LU, Nombre, contrasena, NewList).
+    append(Aux, [X_LU], NewList),
+    setActividad(Y_LU, Nombre, Contrasena, NewList, LUOut).
 
-setActividad([X_LU | Y_LU], Nombre, contrasena, _):-
+setActividad([X_LU | Y_LU], Nombre, Contrasena, Aux, LUOut):-
     git_Universal(X_LU,1,2,[0,1], NameOut),
     NameOut == Nombre,
     git_Universal(X_LU,1,3,[0,1], PassOut),
-    not(PassOut = contrasena),
-    append(aux, [X_LU], NewList),
-    setActividad(Y_LU, Nombre, contrasena, NewList).
+    not(PassOut = Contrasena),
+    append(Aux, [X_LU], NewList),
+    setActividad(Y_LU, Nombre, Contrasena, NewList, LUOut).
 
-setActividad([X_LU | Y_LU], Nombre, contrasena, _):-
+setActividad([X_LU | Y_LU], Nombre, Contrasena, Aux, LUOut):-
     git_Universal(X_LU,1,2,[0,1], Uout2),
     Uout2 == Nombre,
     git_Universal(X_LU,1,3,[0,1], Uout3),
-    Uout3 == contrasena,
+    Uout3 == Contrasena,
     git_Universal(X_LU,1,4,[0,1], Uout4),
-    Uout4 == 0,
+    Uout4 = 0,
     NewActiviti is 1,
     git_Universal(X_LU,1,1,[0,1], Uout1),
     git_Universal(X_LU,1,5,[0,1], Uout5),
@@ -117,16 +118,15 @@ setActividad([X_LU | Y_LU], Nombre, contrasena, _):-
     git_Universal(X_LU,1,7,[0,1], Uout7),
     git_Universal(X_LU,1,8,[0,1], Uout8),
     git_Universal(X_LU,1,9,[0,1], Uout9),
-    git_Universal(X_LU,1,10,[0,1], Uout10),
-    usuario(Uout1,Uout2,Uout3,NewActiviti,Uout5,Uout6,Uout7,Uout8,Uout9,Uout10, NewUser),
-    append(aux, NewUser, NewList),
-    setActividad(Y_LU, Nombre, contrasena, NewList).
+    usuario(Uout1,Uout2,Uout3,NewActiviti,Uout5,Uout6,Uout7,Uout8,Uout9, NewUser),
+    append(Aux, [NewUser], NewList),
+    setActividad(Y_LU, Nombre, Contrasena, NewList, LUOut).
 
-setActividad([X_LU | Y_LU], Nombre, contrasena, _):-
+setActividad([X_LU | Y_LU], Nombre, Contrasena, Aux, LUOut):-
     git_Universal(X_LU,1,2,[0,1], Uout2),
     Uout2 == Nombre,
     git_Universal(X_LU,1,3,[0,1], Uout3),
-    Uout3 == contrasena,
+    Uout3 == Contrasena,
     git_Universal(X_LU,1,4,[0,1], Uout4),
     Uout4 == 1,
     NewActiviti is 0,
@@ -136,11 +136,9 @@ setActividad([X_LU | Y_LU], Nombre, contrasena, _):-
     git_Universal(X_LU,1,7,[0,1], Uout7),
     git_Universal(X_LU,1,8,[0,1], Uout8),
     git_Universal(X_LU,1,9,[0,1], Uout9),
-    git_Universal(X_LU,1,10,[0,1], Uout10),
-    usuario(Uout1,Uout2,Uout3,NewActiviti,Uout5,Uout6,Uout7,Uout8,Uout9,Uout10, NewUser),
-    append(aux, NewUser, NewList),
-    setActividad(Y_LU, Nombre, contrasena, NewList).
-
+    usuario(Uout1,Uout2,Uout3,NewActiviti,Uout5,Uout6,Uout7,Uout8,Uout9, NewUser),
+    append(Aux, [NewUser], NewList),
+    setActividad(Y_LU, Nombre, Contrasena, NewList, LUOut).
 
 %Register
 socialNetworkRegister(SN, Nombre, Contrasena, OSN):-
@@ -164,7 +162,7 @@ socialNetworkRegister(SN,_,_,OSN):-
 socialNetworkLogin(SN, Nombre, Contrasena, OSN):-
     git_Universal(SN, 1, 3, [0,1], Lout3),
     existeUser(Lout3, Nombre),
-    setActividad(Lout3, Nombre, Contrasena, NewListUser),
+    setActividad(Lout3, Nombre, Contrasena, [],NewListUser),
     git_Universal(SN, 1, 1, [0,1], Lout1),
     git_Universal(SN, 1, 2, [0,1], Lout2),
     git_Universal(SN, 1, 4, [0,1], Lout4),
