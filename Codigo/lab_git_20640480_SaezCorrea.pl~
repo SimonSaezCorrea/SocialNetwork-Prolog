@@ -1,7 +1,7 @@
 /*
 HECHOS
 
-usuario(ID, Name, Password, Actividad, Lista Publicaciones, Lista de Publicaciones Compartidas, Fecha creacion, Cantidad Follows, Lista de Follows):
+usuario(ID, Name, Password, Actividad, Lista Publicaciones, Lista de Publicaciones Compartidas, Fecha creacion, Cantidad Follows, Cantidad de seguidores, Lista de Follows, Lista de seguidores):
     ID                                  -> Entero, Corresponde al ID de la cuenta
     Name                                -> String, Corresponde al nombre de la cuenta
     Password                            -> String, Corresponde a la contrasena de la cuenta
@@ -10,7 +10,9 @@ usuario(ID, Name, Password, Actividad, Lista Publicaciones, Lista de Publicacion
     Lista de Publicaciones Compartidas  -> Lista, Corresponde a una lista de publicaciones compartidas senalada por el ID
     Fecha Creacion                      -> Lista, Corresponde a la fecha de creacion, es una lista
     Cantidad de Follows                 -> Entero, Corresponde a la cantidad de follows que hay
-    Lista de Follows                    -> Lista, Corresponde a los users que hay
+    Cantidad de seguidores              -> Entero, Corresponde a la cantidad de seguidores que tiene
+    Lista de Follows                    -> Lista, Corresponde a los users que lo siguen
+    Lista de seguidores                 -> Lista, Corresponde a los users que sigue
 
 Publicaciones(ID,Autor, Fecha publicacion, Tipo de publicacion, Contenido, Lista de Comentarios, Likes, Cantidad de veces compartida):
     ID                              -> Entero, Corresponde al ID de la publicacion
@@ -40,7 +42,7 @@ socialnetwork(Name, Fecha de creacion, Lista de Usuarios, Lista de Publicaciones
 
 %Constructores
 
-usuario(ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, ListFollow, [ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, ListFollow]):-
+usuario(ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, CantSeg, ListFollow, ListSeg, [ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, CantSeg, ListFollow, ListSeg]):-
     integer(ID),
     string(Name),
     string(Password),
@@ -49,7 +51,9 @@ usuario(ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, 
     isListaInteger(ListPubComp),
     isListaInteger(Fecha),
     integer(CantFollow),
-    isListaString(ListFollow).
+    integer(CantSeg),
+    isListaString(ListFollow),
+    isListaString(ListSeg).
 
 publicacion(ID,Autor, Fecha, Tipo, Contenido, ListComentarios, Likes, CantidadCompartida, [ID,Autor, Fecha, Tipo, Contenido, ListComentarios, Likes, CantidadCompartida]):-
     integer(ID),
@@ -86,7 +90,7 @@ isListaString([LS_X| LS_Y]):-
 
 isListaUser([]):- true, !.
 isListaUser([LU_X|LU_Y]):-
-    usuario(_,_,_,_,_,_,_,_,_,LU_X),
+    usuario(_,_,_,_,_,_,_,_,_,_,_,LU_X),
     isListaUser(LU_Y).
 
 isListaPost([]):- true, !.
@@ -175,7 +179,9 @@ setActividad([X_LU | Y_LU], Nombre, Contrasena, Aux, LUOut):-
     git_Universal(X_LU,1,7,[0,1], Uout7),
     git_Universal(X_LU,1,8,[0,1], Uout8),
     git_Universal(X_LU,1,9,[0,1], Uout9),
-    usuario(Uout1,Uout2,Uout3,NewActiviti,Uout5,Uout6,Uout7,Uout8,Uout9, NewUser),
+    git_Universal(X_LU,1,10,[0,1], Uout10),
+    git_Universal(X_LU,1,11,[0,1], Uout11),
+    usuario(Uout1,Uout2,Uout3,NewActiviti,Uout5,Uout6,Uout7,Uout8,Uout9,Uout10, Uout11, NewUser),
     append(Aux, [NewUser], NewList),
     setActividad(Y_LU, Nombre, Contrasena, NewList, LUOut).
 setActividad([X_LU | Y_LU], Nombre, Contrasena, Aux, LUOut):-
@@ -192,7 +198,9 @@ setActividad([X_LU | Y_LU], Nombre, Contrasena, Aux, LUOut):-
     git_Universal(X_LU,1,7,[0,1], Uout7),
     git_Universal(X_LU,1,8,[0,1], Uout8),
     git_Universal(X_LU,1,9,[0,1], Uout9),
-    usuario(Uout1,Uout2,Uout3,NewActiviti,Uout5,Uout6,Uout7,Uout8,Uout9, NewUser),
+    git_Universal(X_LU,1,10,[0,1], Uout10),
+    git_Universal(X_LU,1,11,[0,1], Uout11),
+    usuario(Uout1,Uout2,Uout3,NewActiviti,Uout5,Uout6,Uout7,Uout8,Uout9,Uout10, Uout11, NewUser),
     append(Aux, [NewUser], NewList),
     setActividad(Y_LU, Nombre, Contrasena, NewList, LUOut).
 
@@ -255,8 +263,10 @@ agregarUsuarioPregunta(SN, Usuario, ID, Salida):-
     git_Universal(Usuario,1,7,[0,1], Uout7),
     git_Universal(Usuario,1,8,[0,1], Uout8),
     git_Universal(Usuario,1,9,[0,1], Uout9),
+    git_Universal(Usuario,1,10,[0,1], Uout10),
+    git_Universal(Usuario,1,11,[0,1], Uout11),
     append(ListPostUser, [ID], NewListPostUser),
-    usuario(Uout1,Uout2,Uout3,Uout4,NewListPostUser,Uout6,Uout7,Uout8,Uout9, NewUser),
+    usuario(Uout1,Uout2,Uout3,Uout4,NewListPostUser,Uout6,Uout7,Uout8,Uout9, Uout10, Uout11, NewUser),
     cambiarUsuario(ListUsers, NewUser, [], NewListaUser),
     Salida = [SNOut1,SNOut2,NewListaUser,SNOut4,SNOut5],
     true, !.
@@ -273,7 +283,7 @@ socialNetworkRegister(SN, Fecha, Nombre, Contrasena, OSN):-
     git_Universal(SN, 1, 3, [0,1], Lout3),
     not(existeUser(Lout3, Nombre)),
     git_MayorID(SN,1,3, IDOut),
-    usuario(IDOut, Nombre, Contrasena, 0, [], [], Fecha, 0, [], UOut),
+    usuario(IDOut, Nombre, Contrasena, 0, [], [], Fecha, 0, 0, [], [], UOut),
     git_Universal(SN, 1, 1, [0,1], Lout1),
     git_Universal(SN, 1, 2, [0,1], Lout2),
     append(Lout3, [UOut], NewListUser),
@@ -337,7 +347,56 @@ socialNetworkPost(SN, Fecha, Texto, ListaUsuario, SNO):-
     agregarPregunta(SN, Fecha, Texto, Autor, NewSN),
     git_Universal(NewSN, 1, 1, [0,1], SN_parte2),
     git_Universal(NewSN, 1, 2, [0,1], ID),
-    socialNetworkPost_otroUser(SN_parte2, ID, ListaUsuario, SNO).
+    socialNetworkPost_otroUser(SN_parte2, ID, ListaUsuario, SNO),
+    true, !.
 socialNetworkPost(_, _, _, _, _):- false, !.
 
 
+%Follow
+
+
+socialNetworkFollow(SN, User, _):-
+    not(isSocialNetwork(SN)),
+    not(string(User)),
+    false, !.
+socialNetworkFollow(SN, User, SNOut):-
+    git_Universal(SN, 1, 1, [0,1], NombreSN),
+    git_Universal(SN, 1, 2, [0,1], FechaSN),
+    git_Universal(SN, 1, 3, [0,1], ListUsersSN),
+    git_Universal(SN, 1, 4, [0,1], ListPostSN),
+    git_Universal(SN, 1, 5, [0,1], ListComentSN),
+    cuentaActivada(ListUsersSN, UsuarioActivoado),
+    buscarCuenta(ListUsersSN, User, UsuarioSeguir),
+    git_Universal(UsuarioActivoado,1,1,[0,1], SUA1),
+    git_Universal(UsuarioActivoado,1,2,[0,1], NameUserActi),
+    git_Universal(UsuarioActivoado,1,3,[0,1], SUA3),
+    git_Universal(UsuarioActivoado,1,4,[0,1], SUA4),
+    git_Universal(UsuarioActivoado,1,5,[0,1], SUA5),
+    git_Universal(UsuarioActivoado,1,6,[0,1], SUA6),
+    git_Universal(UsuarioActivoado,1,7,[0,1], SUA7),
+    git_Universal(UsuarioActivoado,1,8,[0,1], CantUserSeg_UA),
+    CantUserSeg_UA_Total is CantUserSeg_UA + 1,
+    git_Universal(UsuarioActivoado,1,9,[0,1], SUA9),
+    git_Universal(UsuarioActivoado,1,10,[0,1], ListUserSeg_UA),
+    append(ListUserSeg_UA, [User], NewListUserSeg_UA),
+    git_Universal(UsuarioActivoado,1,11,[0,1], SUA11),
+    usuario(SUA1,NameUserActi,SUA3,SUA4,SUA5,SUA6,SUA7,CantUserSeg_UA_Total,SUA9,NewListUserSeg_UA,SUA11, NewUserAct),
+    git_Universal(UsuarioSeguir,1,1,[0,1], SU1),
+    git_Universal(UsuarioSeguir,1,2,[0,1], SU2),
+    git_Universal(UsuarioSeguir,1,3,[0,1], SU3),
+    git_Universal(UsuarioSeguir,1,4,[0,1], SU4),
+    git_Universal(UsuarioSeguir,1,5,[0,1], SU5),
+    git_Universal(UsuarioSeguir,1,6,[0,1], SU6),
+    git_Universal(UsuarioSeguir,1,7,[0,1], SU7),
+    git_Universal(UsuarioSeguir,1,8,[0,1], SU7),
+    git_Universal(UsuarioSeguir,1,9,[0,1], CantUserSeg_U),
+    CantUserSeg_U_Total is CantUserSeg_U + 1,
+    git_Universal(UsuarioActivoado,1,9,[0,1], SUA8),
+    git_Universal(UsuarioSeguir,1,10,[0,1], SU10),
+    git_Universal(UsuarioSeguir,1,11,[0,1], listUserSeg_U),
+    append(listUserSeg_A, [NameUserActi], NewListUserSeg_U),
+    usuario(SU1,SU2,SU3,SU4,SU5,SU6,SU7,SU8,CantUserSeg_U_Total,SU10,NewListUserSeg_U, NewUser),
+    cambiarUsuario(ListUsersSN, NewUserAct, [], NewListUser1),
+    cambiarUsuario(NewListUser1, NewUser, [],NewListUser2),
+    SNOut = [NombreSN, FechaSN, NewListUser2, ListPostSN, ListComentSN],
+    true, !.
