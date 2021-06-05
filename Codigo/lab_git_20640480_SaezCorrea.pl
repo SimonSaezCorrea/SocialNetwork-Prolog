@@ -40,13 +40,73 @@ socialnetwork(Name, Fecha de creacion, Lista de Usuarios, Lista de Publicaciones
 
 %Constructores
 
-usuario(ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, ListFollow, UOut):- UOut = [ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, ListFollow].
+usuario(ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, ListFollow, [ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, ListFollow]):-
+    integer(ID),
+    string(Name),
+    string(Password),
+    integer(Actividad),
+    isListaInteger(ListPub),
+    isListaInteger(ListPubComp),
+    isListaInteger(Fecha),
+    integer(CantFollow),
+    isListaString(ListFollow).
 
-publicacion(ID,Autor, Fecha, Tipo, Contenido, ListComentarios, Likes, CantidadCompartida, POut):- POut = [ID,Autor, Fecha, Tipo, Contenido, ListComentarios, Likes, CantidadCompartida].
+publicacion(ID,Autor, Fecha, Tipo, Contenido, ListComentarios, Likes, CantidadCompartida, [ID,Autor, Fecha, Tipo, Contenido, ListComentarios, Likes, CantidadCompartida]):-
+    integer(ID),
+    string(Autor),
+    isListaInteger(Fecha),
+    string(Tipo),
+    string(Contenido),
+    isListaInteger(ListComentarios),
+    integer(Likes),
+    integer(CantidadCompartida).
 
-comentario(ID, Autor, Fecha, Contenido, Likes, COut):- COut = [ID, Autor, Fecha, Contenido, Likes].
+comentario(ID, Autor, Fecha, Contenido, Likes, [ID, Autor, Fecha, Contenido, Likes]):-
+    integer(ID),
+    string(Autor),
+    isListaInteger(Fecha),
+    string(Contenido),
+    integer(Likes).
 
-socialnetwork(Name, Fecha, SOut):- SOut = [Name, Fecha, [], [], []].
+socialnetwork(Name, Fecha, [Name, Fecha, [], [], []]):-
+    string(Name),
+    isListaInteger(Fecha).
+
+%Pertenencia
+
+isListaInteger([]):- true, !.
+isListaInteger([LI_X|LI_Y]):-
+    integer(LI_X),
+    isListaInteger(LI_Y).
+
+isListaString([]):- true, !.
+isListaString([LS_X| LS_Y]):-
+    string(LS_X),
+    isListaString(LS_Y).
+
+isListaUser([]):- true, !.
+isListaUser([LU_X|LU_Y]):-
+    usuario(_,_,_,_,_,_,_,_,_,LU_X),
+    isListaUser(LU_Y).
+
+isListaPost([]):- true, !.
+isListaPost([LP_X|LP_Y]):-
+    publicacion(_,_,_,_,_,_,_,_,LP_X),
+    isListaPost(LP_Y).
+
+isListaComent([]):- true, !.
+isListaComent([LC_X|LC_Y]):-
+    comentario(_,_,_,_,_,LC_X),
+    isListaComent(LC_Y).
+
+
+isSocialNetwork([Name, Fecha, ListUser, ListPost, ListComent]):-
+    string(Name),
+    isListaInteger(Fecha),
+    isListaUser(ListUser),
+    isListaPost(ListPost),
+    isListaComent(ListComent).
+
 
 %selectores
 
@@ -203,6 +263,12 @@ agregarUsuarioPregunta(SN, Usuario, ID, Salida):-
 
 
 %Register
+socialNetworkRegister(SN, Fecha, Nombre, Contrasena, _):-
+    not(isSocialNetwork(SN)),
+    not(isListaInteger(Fecha)),
+    not(string(Nombre)),
+    not(string(Contrasena)),
+    false, !.
 socialNetworkRegister(SN, Fecha, Nombre, Contrasena, OSN):-
     git_Universal(SN, 1, 3, [0,1], Lout3),
     not(existeUser(Lout3, Nombre)),
@@ -220,6 +286,11 @@ socialNetworkRegister(SN,_,_,_,OSN):-
     true, !.
 
 %Login
+socialNetworkLogin(SN, Nombre, Contrasena, _):-
+    not(isSocialNetwork(SN)),
+    not(string(Nombre)),
+    not(string(Contrasena)),
+    false, !.
 socialNetworkLogin(SN, Nombre, Contrasena, OSN):-
     git_Universal(SN, 1, 3, [0,1], ListUsers),
     existeUser(ListUsers, Nombre),
@@ -235,15 +306,20 @@ socialNetworkLogin(SN,_,_,OSN):-
     true, !.
 
 %Post
-socialNetworkPost_otroUser(SN, _, [], _, SNO):- SNO = SN, true, !.
-socialNetworkPost_otroUser(SN, ID, [ListaUsuario_X | ListaUsuario_Y], Aux, SNO):-
+socialNetworkPost_otroUser(SN, _, [], SNO):- SNO = SN, true, !.
+socialNetworkPost_otroUser(SN, ID, [ListaUsuario_X | ListaUsuario_Y], SNO):-
     git_Universal(SN, 1, 3, [0,1], ListUsers),
     buscarCuenta(ListUsers, ListaUsuario_X, Usuario),
     agregarUsuarioPregunta(SN, Usuario, ID, NewSN),
-    Aux = NewSN,
-    socialNetworkPost_otroUser(Aux, ID, ListaUsuario_Y, SNO, SNO).
-socialNetworkPost_otroUser(_, _, _, _, _):- false, !.
+    socialNetworkPost_otroUser(NewSN, ID, ListaUsuario_Y, SNO).
+socialNetworkPost_otroUser(_, _, _, _):- false, !.
 
+socialNetworkPost(SN, Fecha, Texto, ListUsers, _):-
+    not(isSocialNetwork(SN)),
+    not(isListaInteger(Fecha)),
+    not(string(Texto)),
+    not(isListaInteger(ListUsers)),
+    false, !.
 socialNetworkPost(SN, Fecha, Texto, [], SNO):-
     git_Universal(SN, 1, 3, [0,1], ListUsers),
     cuentaActivada(ListUsers, Usuario),
@@ -261,7 +337,8 @@ socialNetworkPost(SN, Fecha, Texto, ListaUsuario, SNO):-
     agregarPregunta(SN, Fecha, Texto, Autor, NewSN),
     git_Universal(NewSN, 1, 1, [0,1], SN_parte2),
     git_Universal(NewSN, 1, 2, [0,1], ID),
-    socialNetworkPost_otroUser(SN_parte2, ID, ListaUsuario,Aux, SNO).
+    socialNetworkPost_otroUser(SN_parte2, ID, ListaUsuario, SNO),
+    true, !.
 socialNetworkPost(_, _, _, _, _):- false, !.
 
 
