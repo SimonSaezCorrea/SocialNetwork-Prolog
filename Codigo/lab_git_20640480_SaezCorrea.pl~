@@ -150,7 +150,7 @@ git_MayorID([X_List|Y_List], ID, Max, IDSalida):-
     git_MayorID(List_X, ID, 0, IDSalida).
 
 getPregunta([LP_X|_], ID, Salida):-
-    git_Universla(LP_X,1,1,[0,1],IDLP),
+    git_Universal(LP_X,1,1,[0,1],IDLP),
     IDLP == ID,
     Salida = LP_X.
 getPregunta([_|LP_Y],ID,Salida):-
@@ -484,10 +484,10 @@ socialNetworkShare(SN,Fecha,IDPost,ListUser, SOut):-
 comentUserToString([],_,String,String).
 comentUserToString([LID_X|LID_Y],LC, String, StringSalida):-
     getPregunta(LC,LID_X,Coment),
-    git_Universal(Coment,0,1,[0,1],ID),
-    git_Universal(Coment,0,2,[0,1],Autor),
-    git_Universal(Coment,0,4,[0,1],Contenido),
-    git_Universal(Coment,0,5,[0,1],Likes),
+    git_Universal(Coment,1,1,[0,1],ID),
+    git_Universal(Coment,1,2,[0,1],Autor),
+    git_Universal(Coment,1,4,[0,1],Contenido),
+    git_Universal(Coment,1,5,[0,1],Likes),
     concat(String, "        El id es ", String1),
     concat(String1, ID, String2),
     concat(String2, "\n", String3),
@@ -505,11 +505,11 @@ comentUserToString([LID_X|LID_Y],LC, String, StringSalida):-
 pregUserToString([],_,_,String, String).
 pregUserToString([LID_X|LID_Y], LP, LC, String, StringSalida):-
     getPregunta(LP,LID_X,Preg),
-    git_Universal(Preg,0,1,[0,1],ID),
-    git_Universal(Preg,0,2,[0,1],Autor),
-    git_Universal(Preg,0,5,[0,1],Contenido),
-    git_Universal(Preg,0,6,[0,1],ListaComentario),
-    git_Universal(Preg,0,7,[0,1],Likes),
+    git_Universal(Preg,1,1,[0,1],ID),
+    git_Universal(Preg,1,2,[0,1],Autor),
+    git_Universal(Preg,1,5,[0,1],Contenido),
+    git_Universal(Preg,1,6,[0,1],ListaComentario),
+    git_Universal(Preg,1,7,[0,1],Likes),
     concat(String, "    El id es ", String1),
     concat(String1, ID, String2),
     concat(String2, "\n", String3),
@@ -524,6 +524,37 @@ pregUserToString([LID_X|LID_Y], LP, LC, String, StringSalida):-
     concat(String11, Likes, String12),
     concat(String12, " likes\n---------------------------------------\n", String13),
     pregUserToString(LID_Y, LP, LC, String13, StringSalida).
+
+pregCompUserToString([],_,_,String,String).
+pregCompUserToString([[LPC_XX,[LPC_XYX,LPC_XYY,LPC_XYZ]]|LPC_Y], LP, LC, String, StringSalida):-
+    getPregunta(LP,LPC_XX,Preg),
+    git_Universal(Preg,1,1,[0,1],ID),
+    git_Universal(Preg,1,2,[0,1],Autor),
+    git_Universal(Preg,1,5,[0,1],Contenido),
+    git_Universal(Preg,1,6,[0,1],ListaComentario),
+    git_Universal(Preg,1,7,[0,1],Likes),
+    concat(String, "    El id es ", String1),
+    concat(String1, ID, String2),
+    concat(String2, "\n", String3),
+    concat(String3, "    El autor es ", String4),
+    concat(String4, Autor, String5),
+    concat(String5, "\n    ", String6),
+    concat(String6, Contenido, String7),
+    concat(String7, "\n", String8),
+    concat(String8, "    Comentarios: \n", String9),
+    comentUserToString(ListaComentario, LC, String9, String10),
+    concat(String10, "    Tiene ", String11),
+    concat(String11, Likes, String12),
+    concat(String12, " likes\n", String13),
+    concat(String13, "    Fecha de compartida: ", String14),
+    concat(String14, LPC_XYX, String15),
+    concat(String15, "/", String16),
+    concat(String16, LPC_XYY, String17),
+    concat(String17, "/", String18),
+    concat(String18, LPC_XYZ, String19),
+    concat(String19, "\n---------------------------------------\n", String20),
+    pregCompUserToString(LPC_Y, LP, LC, String20, StringSalida).
+
 
 
 listStringToString([],String,String).
@@ -543,10 +574,10 @@ userToString(Usuario, ListPregunta, ListComentario, Salida):-
     git_Universal(Usuario,1,9,[0,1], CS),
     git_Universal(Usuario,1,10,[0,1], LF),
     git_Universal(Usuario,1,11,[0,1], LS),
-    %pregUserToString(LP, ListPregunta, ListComentario, "", StringLP),
-    %pregUserToString(LPC, ListPregunta, ListComentario, "", StringLC),
-    %listStringToString(LF, "", StringLF),
-    %listStringToString(LS, "", StringLS),
+    pregUserToString(LP, ListPregunta, ListComentario, "", StringLP),
+    pregCompUserToString(LPC, ListPregunta, ListComentario, "", StringLC),
+    listStringToString(LF, "", StringLF),
+    listStringToString(LS, "", StringLS),
     concat("", "El id es ", String),
     concat(String, Id, String1),
     concat(String1, "\n", String2),
@@ -557,35 +588,61 @@ userToString(Usuario, ListPregunta, ListComentario, Salida):-
     concat(String6, Pass, String7),
     concat(String7, "\n", String8),
     concat(String8, "Preguntas hechas: \n", String9),
-    %concat(String9, StringLP, String10),
-    concat(String9, "\n", String11),
+    concat(String9, StringLP, String10),
+    concat(String10, "\n", String11),
     concat(String11, "Preguntas compartidas: \n", String12),
-   % concat(String12, StringLC, String13),
-    concat(String12, "\n", String14),
+    concat(String12, StringLC, String13),
+    concat(String13, "\n", String14),
     concat(String14, "Cuentas seguidas son una cantidad de ", String15),
     concat(String15, CF, String16),
     concat(String16, "\n", String17),
     concat(String17, "Y son: \n", String18),
-    %concat(String18, StringLF, String19),
-    concat(String18, "\n", String20),
+    concat(String18, StringLF, String19),
+    concat(String19, "\n", String20),
     concat(String20, "Cuentas que te siguen son una cantidad de ", String21),
     concat(String21, CS, String22),
     concat(String22, "\n", String23),
     concat(String23, "Y son: \n", String24),
-    %concat(String24, StringLS, String25),
-    concat(String24, "\n", String26),
-    Salida = String26.
+    concat(String24, StringLS, String25),
+    concat(String25, "\n", String26),
+    Salida = String26,
+    true, !.
 
+listUserToString([],_,_,String,String).
+listUserToString([LU_X|LU_Y],LP,LC,String,StringSalida):-
+    userToString(LU_X, LP, LC, String),
+    concat(String,"\n------------------------\n", String2),
+    listUserToString(LU_Y,LP,LC,String2,StringSalida).
 
 % ToString
 
 socialNetworkToString(SN, _):-
     not(isSocialNetwork(SN)).
 socialNetworkToString(SN, Salida):-
-    git_Universal(SN,0,3,[0,1],SLU),
-    git_Universal(SN,0,4,[0,1],SLP),
-    git_Universal(SN,0,5,[0,1],SLC),
+    git_Universal(SN,1,3,[0,1],SLU),
+    git_Universal(SN,1,4,[0,1],SLP),
+    git_Universal(SN,1,5,[0,1],SLC),
     existeActivo(SLU),
     cuentaActivada(SLU, User),
-    userToString(User, SLP, SLC, Salida).
-
+    userToString(User, SLP, SLC, Salida),
+    true, !.
+socialNetworkToString(SN,Salida):-
+    git_Universal(SN,1,1,[0,1],SName),
+    git_Universal(SN,1,2,[0,1],[Dia,Mes,Ano]),
+    git_Universal(SN,1,3,[0,1],SLU),
+    git_Universal(SN,1,4,[0,1],SLP),
+    git_Universal(SN,1,5,[0,1],SLC),
+    listUserToString(SLU,SLP,SLC, "", StringUsers),
+    concat("Nombre de la social network ", SName, String),
+    concat(String, "Fecha de creacion: ", String1),
+    concat(String1, Dia, String2),
+    concat(String2, "/", String3),
+    concat(String3, Mes, String4),
+    concat(String4, "/", String5),
+    concat(String5, Ano, String6),
+    concat(String6, "\n", String7),
+    concat(String6, "Lista Usuarios: ", String7),
+    concat(String6, StringUsers, String7),
+    concat(String6, "\n", String7),
+    Salida = String7,
+    true, !.
