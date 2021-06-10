@@ -31,6 +31,7 @@ comentario(ID, Autor, Fecha del comentario, Contenido, Likes):
     Fecha del comentario    -> Lista, Corresponde a la fecha que se publico el comentario
     Contenido               -> String, Corresponde al contenido del comentario
     Likes                   -> Entero, Corresponde a la cantidad de likes que tiene el comentario
+    Comentario              -> String, Comentario del comentario
 
 socialnetwork(Name, Fecha de creacion, Lista de Usuarios, Lista de Publicaciones, Lista de Comentarios):
     Name                    -> String, Corresponde al nombre del socialnetwork
@@ -65,12 +66,13 @@ publicacion(ID,Autor, Fecha, Tipo, Contenido, ListComentarios, Likes, CantidadCo
     integer(Likes),
     integer(CantidadCompartida).
 
-comentario(ID, Autor, Fecha, Contenido, Likes, [ID, Autor, Fecha, Contenido, Likes]):-
+comentario(ID, Autor, Fecha, Contenido, Likes, ListComentario, [ID, Autor, Fecha, Contenido, Likes, ListComentario]):-
     integer(ID),
     string(Autor),
     isListaInteger(Fecha),
     string(Contenido),
-    integer(Likes).
+    integer(Likes),
+    isListaInteger(ListComentario).
 
 socialnetwork(Name, Fecha, [Name, Fecha, [], [], []]):-
     string(Name),
@@ -108,7 +110,7 @@ isListaPost([LP_X|LP_Y]):-
 
 isListaComent([]):- true, !.
 isListaComent([LC_X|LC_Y]):-
-    comentario(_,_,_,_,_,LC_X),
+    comentario(_,_,_,_,_,_,LC_X),
     isListaComent(LC_Y).
 
 
@@ -118,6 +120,13 @@ isSocialNetwork([Name, Fecha, ListUser, ListPost, ListComent]):-
     isListaUser(ListUser),
     isListaPost(ListPost),
     isListaComent(ListComent).
+
+existeComentario([],_):- false, !.
+existeComentario([LP_X|_], IDC):-
+    LP_X = IDC,
+    true, !.
+existeComentario([_|LP_Y], IDC):-
+    existeComentario(LP_Y, IDC).
 
 
 %selectores
@@ -157,7 +166,7 @@ getPregunta([_|LP_Y],ID,Salida):-
     getPregunta(LP_Y, ID, Salida).
 
 getComentario([LC_X|_], ID, Salida):-
-    git_Universla(LC_X,1,1,[0,1],IDLC),
+    git_Universal(LC_X,1,1,[0,1],IDLC),
     IDLC == ID,
     Salida = LC_X.
 getComentario([_|LC_Y],ID,Salida):-
@@ -254,16 +263,16 @@ existeActivo([_|SN_Y]):-
     existeActivo(SN_Y).
 
 %Permite cambiar un usuario por otro
-cambiarUsuario([],_,Aux,Salida):- Salida = Aux, true, !.
-cambiarUsuario([LU_X | LU_Y], User, Aux, Salida):-
-    git_Universal(User,1,2,[0,1], OName1),
-    git_Universal(LU_X,1,2,[0,1], OName2),
+cambiar([],_,Aux,Salida):- Salida = Aux, true, !.
+cambiar([LU_X | LU_Y], User, Aux, Salida):-
+    git_Universal(User,1,1,[0,1], OName1),
+    git_Universal(LU_X,1,1,[0,1], OName2),
     OName1 == OName2,
     append(Aux, [User], NewLU),
-    cambiarUsuario(LU_Y, User, NewLU, Salida).
-cambiarUsuario([LU_X | LU_Y], User, Aux, Salida):-
+    cambiar(LU_Y, User, NewLU, Salida).
+cambiar([LU_X | LU_Y], User, Aux, Salida):-
     append(Aux, [LU_X], NewLU),
-    cambiarUsuario(LU_Y, User, NewLU, Salida).
+    cambiar(LU_Y, User, NewLU, Salida).
 
 %Agrega una pregunta a la lista de preguntas
 agregarPregunta(SN, Fecha, Texto, Autor, POut):-
@@ -277,6 +286,7 @@ agregarPregunta(SN, Fecha, Texto, Autor, POut):-
     append(ListPost, [Publicacion], NewListPost),
     POut = [[SNOut1,SNOut2,SNOut3,NewListPost,SNOut5],ID],
     true, !.
+
 agregarUsuarioPregunta(SN, Usuario, ID, Salida):-
     git_Universal(SN, 1, 1, [0,1], SNOut1),
     git_Universal(SN, 1, 2, [0,1], SNOut2),
@@ -296,11 +306,9 @@ agregarUsuarioPregunta(SN, Usuario, ID, Salida):-
     git_Universal(Usuario,1,11,[0,1], Uout11),
     append(ListPostUser, [ID], NewListPostUser),
     usuario(Uout1,Uout2,Uout3,Uout4,NewListPostUser,Uout6,Uout7,Uout8,Uout9, Uout10, Uout11, NewUser),
-    cambiarUsuario(ListUsers, NewUser, [], NewListaUser),
+    cambiar(ListUsers, NewUser, [], NewListaUser),
     Salida = [SNOut1,SNOut2,NewListaUser,SNOut4,SNOut5],
     true, !.
-
-
 agregarUsuarioCompartida(SN,Usuario, ID, Fecha, Salida):-
     git_Universal(SN, 1, 1, [0,1], SNOut1),
     git_Universal(SN, 1, 2, [0,1], SNOut2),
@@ -320,9 +328,66 @@ agregarUsuarioCompartida(SN,Usuario, ID, Fecha, Salida):-
     git_Universal(Usuario,1,11,[0,1], Uout11),
     append(ListPostComp, [[ID, Fecha]], NewListPostCompUser),
     usuario(Uout1,Uout2,Uout3,Uout4,Uout5,NewListPostCompUser,Uout7,Uout8,Uout9, Uout10, Uout11, NewUser),
-    cambiarUsuario(ListUsers, NewUser, [], NewListaUser),
+    cambiar(ListUsers, NewUser, [], NewListaUser),
     Salida = [SNOut1,SNOut2,NewListaUser,SNOut4,SNOut5],
     true, !.
+
+
+agregarComentario(SN, Fecha, Texto, Autor,COut):-
+    git_Universal(SN, 1, 1, [0,1], SNOut1),
+    git_Universal(SN, 1, 2, [0,1], SNOut2),
+    git_Universal(SN, 1, 3, [0,1], SNOut3),
+    git_Universal(SN, 1, 4, [0,1], SNOut4),
+    git_Universal(SN, 1, 5, [0,1], ListComent),
+    git_MayorID(ListComent, 1,0,ID),
+    comentario(ID,Autor, Fecha, Texto, 0, [], Comentario),
+    append(ListComent, [Comentario], NewListComment),
+    COut = [[SNOut1,SNOut2,SNOut3,SNOut4,NewListComment], ID],
+    true, !.
+
+agregarComentarioPregunta(SN,IDP,IDC,COut):-
+    git_Universal(SN, 1, 1, [0,1], SNOut1),
+    git_Universal(SN, 1, 2, [0,1], SNOut2),
+    git_Universal(SN, 1, 3, [0,1], SNOut3),
+    git_Universal(SN, 1, 4, [0,1], ListPost),
+    git_Universal(SN, 1, 5, [0,1], SNOut5),
+    getPregunta(ListPost, IDP, Post),
+    git_Universal(Post, 1, 1, [0,1], P1),
+    git_Universal(Post, 1, 2, [0,1], P2),
+    git_Universal(Post, 1, 3, [0,1], P3),
+    git_Universal(Post, 1, 4, [0,1], P4),
+    git_Universal(Post, 1, 5, [0,1], P5),
+    git_Universal(Post, 1, 6, [0,1], P6),
+    git_Universal(Post, 1, 7, [0,1], P7),
+    git_Universal(Post, 1, 8, [0,1], P8),
+    append(P6, [IDC], NewP6),
+    publicacion(P1,P2,P3,P4,P5,NewP6,P7,P8, NewPost),
+    cambiar(ListPost, NewPost, [], NewListPost),
+    COut = [SNOut1, SNOut2, SNOut3, NewListPost, SNOut5],
+    true, !.
+agregarComentarioComentario(SN,IDP,IDC,ID,COut):-
+    git_Universal(SN, 1, 1, [0,1], SNOut1),
+    git_Universal(SN, 1, 2, [0,1], SNOut2),
+    git_Universal(SN, 1, 3, [0,1], SNOut3),
+    git_Universal(SN, 1, 4, [0,1], ListPost),
+    git_Universal(SN, 1, 5, [0,1], ListComent),
+    getPregunta(ListPost, IDP, Post),
+    git_Universal(Post, 1, 6, [0,1], P6),
+    existeComentario(P6, IDC),
+    getComentario(ListComent, IDC, Comentario),
+    git_Universal(Comentario, 1, 1, [0,1], C1),
+    git_Universal(Comentario, 1, 2, [0,1], C2),
+    git_Universal(Comentario, 1, 3, [0,1], C3),
+    git_Universal(Comentario, 1, 4, [0,1], C4),
+    git_Universal(Comentario, 1, 5, [0,1], C5),
+    git_Universal(Comentario, 1, 6, [0,1], C6),
+    append(C6, [ID], NewC6),
+    comentario(C1,C2,C3,C4,C5,NewC6, NewComent),
+    cambiar(ListComent, NewComent, [], NewListComent),
+    COut = [SNOut1, SNOut2, SNOut3, ListPost, NewListComent],
+    true, !.
+
+
 
 %Register
 socialNetworkRegister(SN, Fecha, Nombre, Contrasena, _):-
@@ -447,8 +512,8 @@ socialNetworkFollow(SN, User, SNOut):-
     git_Universal(UsuarioSeguir,1,11,[0,1], ListUserSeg_U),
     append(ListUserSeg_U, [NameUserActi], NewListUserSeg_U),
     usuario(SU1,SU2,SU3,SU4,SU5,SU6,SU7,SU8,CantUserSeg_U_Total,SU10,NewListUserSeg_U, NewUser),
-    cambiarUsuario(ListUsersSN, NewUserAct, [], NewListUser1),
-    cambiarUsuario(NewListUser1, NewUser, [],NewListUser2),
+    cambiar(ListUsersSN, NewUserAct, [], NewListUser1),
+    cambiar(NewListUser1, NewUser, [],NewListUser2),
     SNOut = [NombreSN, FechaSN, NewListUser2, ListPostSN, ListComentSN],
     true, !.
 
@@ -646,4 +711,30 @@ socialNetworkToString(SN,Salida):-
     concat(String6, StringUsers, String7),
     concat(String6, "\n", String7),
     Salida = String7,
+    true, !.
+
+
+% Comentar
+
+socialNetworkComment(SN,Fecha,IDPost,IDComent,TextComent,_):-
+    not(isSocialNetwork(SN));
+    not(isListaInteger(Fecha));
+    not(integer(IDPost));
+    not(integer(IDComent));
+    not(string(TextComent));
+    false,!.
+socialNetworkComment(SN,Fecha,IDPost,IDComent,TextComent,SNSalida):-
+    IDComent == 0,
+    git_Universal(SN,1,3,[0,1],SLU),
+    cuentaActivada(SLU, User),
+    git_Universal(User,1,2,[0,1],Autor),
+    agregarComentario(SN, Fecha,TextComent,Autor,[NewSN, IDSalida]),
+    agregarComentarioPregunta(NewSN, IDPost, IDSalida, SNSalida),
+    true, !.
+socialNetworkComment(SN,Fecha,IDPost,IDComent,TextComent,SNSalida):-
+    git_Universal(SN,1,3,[0,1],SLU),
+    cuentaActivada(SLU, User),
+    git_Universal(User,1,2,[0,1],Autor),
+    agregarComentario(SN, Fecha,TextComent,Autor,[NewSN, IDSalida]),
+    agregarComentarioComentario(NewSN, IDPost, IDComent, IDSalida, SNSalida),
     true, !.
