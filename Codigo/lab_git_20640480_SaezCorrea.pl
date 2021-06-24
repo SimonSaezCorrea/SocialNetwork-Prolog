@@ -31,7 +31,7 @@ comentario(ID, Autor, Fecha del comentario, Contenido, Likes):
     Fecha del comentario    -> Lista, Corresponde a la fecha que se publico el comentario
     Contenido               -> String, Corresponde al contenido del comentario
     Likes                   -> Entero, Corresponde a la cantidad de likes que tiene el comentario
-    Comentario              -> String, Comentario del comentario
+    Lista de Comentario     -> Lista, Corresponde a los comentarios que contiene
 
 socialnetwork(Name, Fecha de creacion, Lista de Usuarios, Lista de Publicaciones, Lista de Comentarios):
     Name                    -> String, Corresponde al nombre del socialnetwork
@@ -69,15 +69,6 @@ Secundarias ->  usuario, publicacion, comentario
 
 
 % --------------------------------Constructores---------------------------
-
-%Permite crear una fecha
-fecha(Dia,Mes,Anio,[Dia,Mes,Anio]):-
-    integer(Dia),
-    Dia > 0, Dia < 32,
-    integer(Mes),
-    Mes > 0, Mes < 13,
-    integer(Anio),
-    Anio > 0.
 
 %Permite crear un usuario
 usuario(ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, CantSeg, ListFollow, ListSeg, [ID, Name, Password, Actividad, ListPub, ListPubComp, Fecha, CantFollow, CantSeg, ListFollow, ListSeg]):-
