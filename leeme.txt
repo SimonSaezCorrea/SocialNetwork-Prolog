@@ -1,0 +1,3 @@
+Use el siguiente predicado, tal cual como esta para poder ver los resultados como mayor presicion y sin los "[...]".
+ 
+set_prolog_flag(answer_write_options,[max_depth(0)]).
